@@ -89,6 +89,7 @@ services:
   node:
     image: node:20-alpine
     container_name: smartevent-node
+    init: true
     working_dir: /var/www
     volumes:
       - ../frontend:/var/www:cached
