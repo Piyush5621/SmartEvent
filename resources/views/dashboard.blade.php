@@ -97,6 +97,276 @@
                         <i data-lucide="arrow-right" class="w-5 h-5 text-slate-300 group-hover:text-primary group-hover:translate-x-1.5 transition-all"></i>
                     </a>
                 </div>
+            <!-- Experience Calendar Section -->
+            @php
+                $bookedTicketsArray = $confirmedTickets->map(function($t) {
+                    return [
+                        'id' => $t->id,
+                        'booking_reference' => $t->booking_reference,
+                        'quantity' => $t->quantity,
+                        'status' => $t->status,
+                        'event_title' => $t->event->title,
+                        'event_date' => $t->event->start_date->format('Y-m-d'),
+                        'event_time' => $t->event->start_date->format('g:i A'),
+                        'event_category' => $t->event->category->name,
+                        'event_city' => $t->event->venue ? $t->event->venue->city : 'Online',
+                        'event_venue' => $t->event->venue ? $t->event->venue->name : 'Digital Realm',
+                        'event_banner' => $t->event->getFirstMediaUrl('banners') ?: 'https://images.unsplash.com/photo-1540575861501-7ad05823c23d?auto=format&fit=crop&q=80&w=400',
+                        'ticket_type' => $t->ticketType->name,
+                        'amount' => $t->total_amount,
+                        'ticket_url' => route('user.tickets.show', $t->booking_reference)
+                    ];
+                })->toArray();
+            @endphp
+            <section x-data="{
+                currentYear: new Date().getFullYear(),
+                currentMonth: new Date().getMonth(),
+                monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                
+                daysInMonth(month, year) {
+                    return new Date(year, month + 1, 0).getDate();
+                },
+                startDayOfWeek(month, year) {
+                    return new Date(year, month, 1).getDay();
+                },
+                prevMonth() {
+                    if (this.currentMonth === 0) {
+                        this.currentMonth = 11;
+                        this.currentYear--;
+                    } else {
+                        this.currentMonth--;
+                    }
+                },
+                nextMonth() {
+                    if (this.currentMonth === 11) {
+                        this.currentMonth = 0;
+                        this.currentYear++;
+                    } else {
+                        this.currentMonth++;
+                    }
+                },
+                
+                bookedTickets: @json($bookedTicketsArray),
+                
+                selectedDayTickets: [],
+                showTicketSlider: false,
+                selectedDateStr: '',
+                
+                getTicketsForDay(day) {
+                    const dateStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    return this.bookedTickets.filter(t => t.event_date === dateStr);
+                },
+                
+                selectDay(day) {
+                    const tickets = this.getTicketsForDay(day);
+                    if (tickets.length > 0) {
+                        this.selectedDayTickets = tickets;
+                        this.selectedDateStr = new Date(this.currentYear, this.currentMonth, day).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        this.showTicketSlider = true;
+                    }
+                },
+                
+                // Get all tickets for the active month
+                get currentMonthTickets() {
+                    const monthPrefix = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-`;
+                    return this.bookedTickets.filter(t => t.event_date.startsWith(monthPrefix)).sort((a, b) => a.event_date.localeCompare(b.event_date));
+                }
+            }" class="grid gap-8 lg:grid-cols-[1.5fr_1fr] items-stretch">
+                
+                <!-- Calendar Card -->
+                <div class="premium-card p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] shadow-xl shadow-primary/[0.01] flex flex-col justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <span class="text-[9px] font-black text-primary uppercase tracking-[0.2em] block mb-1">Pass Timeline</span>
+                            <h2 class="text-2xl font-serif text-slate-900 dark:text-white font-medium">Experience Calendar</h2>
+                        </div>
+                        
+                        <!-- Month Switcher -->
+                        <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800/80 px-4 py-2 rounded-full shadow-sm w-fit">
+                            <button @click="prevMonth()" class="text-slate-450 hover:text-primary transition-colors focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                            </button>
+                            <span class="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 select-none min-w-[110px] text-center" x-text="`${monthNames[currentMonth]} ${currentYear}`"></span>
+                            <button @click="nextMonth()" class="text-slate-450 hover:text-primary transition-colors focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Days of Week Headers -->
+                    <div class="grid grid-cols-7 gap-2 text-center mb-4">
+                        <template x-for="dayName in daysOfWeek">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 py-1" x-text="dayName"></span>
+                        </template>
+                    </div>
+
+                    <!-- Days Grid -->
+                    <div class="grid grid-cols-7 gap-2">
+                        <!-- Empty cells for leading offset -->
+                        <template x-for="i in Array.from({length: startDayOfWeek(currentMonth, currentYear)})">
+                            <div class="aspect-square bg-transparent"></div>
+                        </template>
+
+                        <!-- Days of month -->
+                        <template x-for="day in daysInMonth(currentMonth, currentYear)">
+                            <button @click="selectDay(day)"
+                                    :disabled="getTicketsForDay(day).length === 0"
+                                    :class="getTicketsForDay(day).length > 0 
+                                        ? 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary hover:text-white hover:border-primary cursor-pointer hover:shadow-lg hover:shadow-primary/20 scale-[1.02] font-black' 
+                                        : 'text-slate-400 dark:text-slate-650 border border-slate-50 dark:border-slate-850/60 cursor-default'"
+                                    class="aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-300 relative group font-sans text-xs">
+                                
+                                <span x-text="day" class="relative z-10 text-sm"></span>
+
+                                <!-- Event indicator dot -->
+                                <template x-if="getTicketsForDay(day).length > 0">
+                                    <span class="absolute bottom-2.5 w-1.5 h-1.5 rounded-full bg-[#4E7D5B] group-hover:bg-white z-10 transition-colors animate-pulse"></span>
+                                </template>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Right Schedule Agenda Card -->
+                <div class="premium-card p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] shadow-xl shadow-primary/[0.01] flex flex-col justify-between">
+                    <div>
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+                            <span class="text-[9px] font-black text-primary uppercase tracking-[0.2em] block mb-1">Ecosystem Grid</span>
+                            <h2 class="text-xl font-serif text-slate-900 dark:text-white font-medium">Monthly Schedule</h2>
+                        </div>
+                        
+                        <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
+                            <template x-for="ticket in currentMonthTickets" :key="ticket.id">
+                                <div @click="selectedDayTickets = [ticket]; selectedDateStr = new Date(ticket.event_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); showTicketSlider = true;" 
+                                     class="flex items-center gap-4 p-4 bg-cream/35 dark:bg-slate-800/10 border border-slate-50 dark:border-slate-850/60 hover:border-primary/25 rounded-2xl cursor-pointer group transition-all duration-300 hover:bg-cream/70 dark:hover:bg-slate-800/30">
+                                    
+                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-primary shrink-0 shadow-sm">
+                                        <span class="text-[9px] font-black leading-none text-slate-400" x-text="new Date(ticket.event_date).toLocaleDateString('en-US', {month: 'short'}).toUpperCase()"></span>
+                                        <span class="text-base font-serif font-black leading-none mt-1 text-slate-800 dark:text-slate-100" x-text="new Date(ticket.event_date).getDate()"></span>
+                                    </div>
+                                    
+                                    <div class="min-w-0 flex-1">
+                                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary transition-colors" x-text="ticket.event_title"></h4>
+                                        <div class="flex items-center gap-1.5 text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                            <span x-text="ticket.event_time"></span>
+                                            <span>&bull;</span>
+                                            <span x-text="ticket.event_city"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                </div>
+                            </template>
+
+                            <template x-if="currentMonthTickets.length === 0">
+                                <div class="py-16 text-center bg-cream/20 border border-slate-50 dark:border-slate-850/60 rounded-2xl flex flex-col items-center justify-center p-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-300 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">No Events Booked</span>
+                                    <p class="text-[10px] text-slate-400 mt-1 max-w-[200px] leading-relaxed">No gathering nodes active in this month interval.</p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('events.index') }}" class="btn-primary w-full py-3.5 text-xs tracking-widest font-black uppercase text-center mt-6">
+                        Find New Gatherings
+                    </a>
+                </div>
+
+                <!-- Slide-out Ticket Drawer overlay -->
+                <div x-show="showTicketSlider" 
+                     class="fixed inset-0 z-[100] overflow-hidden" 
+                     style="display: none;"
+                     aria-labelledby="slide-over-title" 
+                     role="dialog" 
+                     aria-modal="true">
+                    
+                    <div class="absolute inset-0 overflow-hidden">
+                        <!-- Backdrop shadow -->
+                        <div x-show="showTicketSlider"
+                             x-transition:enter="ease-in-out duration-500"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="ease-in-out duration-500"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             @click="showTicketSlider = false"
+                             class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+                             aria-hidden="true"></div>
+
+                        <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                            <!-- Drawer panel -->
+                            <div x-show="showTicketSlider"
+                                 x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700"
+                                 x-transition:enter-start="translate-x-full"
+                                 x-transition:enter-end="translate-x-0"
+                                 x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700"
+                                 x-transition:leave-start="translate-x-0"
+                                 x-transition:leave-end="translate-x-full"
+                                 class="pointer-events-auto w-screen max-w-md">
+                                
+                                <div class="flex h-full flex-col overflow-y-scroll bg-white dark:bg-slate-900 shadow-2xl border-l border-slate-100 dark:border-slate-800/80">
+                                    <div class="px-6 py-6 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-850 flex items-center justify-between">
+                                        <div>
+                                            <h2 class="text-lg font-serif font-bold text-slate-900 dark:text-white" id="slide-over-title">Active Reservations</h2>
+                                            <p class="text-[10px] text-slate-450 dark:text-slate-400 font-black uppercase tracking-widest mt-1" x-text="selectedDateStr"></p>
+                                        </div>
+                                        <button @click="showTicketSlider = false" class="rounded-xl border border-slate-200 dark:border-slate-800 p-2 text-slate-400 hover:text-slate-500 dark:hover:text-white focus:outline-none">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="relative flex-1 p-6 space-y-6">
+                                        <!-- Stacking Ticket Slider List -->
+                                        <template x-for="ticket in selectedDayTickets" :key="ticket.id">
+                                            <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-lg flex flex-col">
+                                                
+                                                <!-- Event Banner -->
+                                                <div class="h-40 relative">
+                                                    <img :src="ticket.event_banner" class="w-full h-full object-cover">
+                                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
+                                                    <span class="absolute bottom-4 left-4 bg-white/15 backdrop-blur-md text-white border border-white/20 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" x-text="ticket.event_category"></span>
+                                                </div>
+
+                                                <!-- Ticket Details -->
+                                                <div class="p-6 space-y-6">
+                                                    <div>
+                                                        <h3 class="text-lg font-serif font-bold text-slate-900 dark:text-white leading-tight" x-text="ticket.event_title"></h3>
+                                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mt-2" x-text="ticket.ticket_type"></span>
+                                                    </div>
+
+                                                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50 dark:border-slate-800">
+                                                        <div>
+                                                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Date & Time</span>
+                                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="ticket.event_time"></span>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Location</span>
+                                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block max-w-[120px]" x-text="ticket.event_venue" :title="ticket.event_venue"></span>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Reference Code</span>
+                                                            <span class="text-xs font-bold text-primary font-mono" x-text="ticket.booking_reference"></span>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Quantity</span>
+                                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="`${ticket.quantity} Passes`"></span>
+                                                        </div>
+                                                    </div>
+
+                                                    <a :href="ticket.ticket_url" class="btn-primary w-full py-3.5 text-xs tracking-widest font-black uppercase text-center block mt-6">
+                                                        Open Digital Pass
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Real stats counters -->

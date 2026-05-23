@@ -58,6 +58,12 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
+        // 8. All confirmed tickets for calendar display
+        $confirmedTickets = Ticket::with(['event.venue', 'event.category'])
+            ->where('user_id', $userId)
+            ->where('status', 'confirmed')
+            ->get();
+
         return view('dashboard', compact(
             'activeTicketsCount',
             'waitlistsCount',
@@ -65,7 +71,8 @@ class DashboardController extends Controller
             'totalGatheringsCount',
             'reviewsCount',
             'upcomingTicket',
-            'recentTickets'
+            'recentTickets',
+            'confirmedTickets'
         ));
     }
 }
