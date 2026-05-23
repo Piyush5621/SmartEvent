@@ -243,6 +243,110 @@
                                 </div>
                             </div>
 
+                            <!-- Review form and notices -->
+                            @auth
+                                @php
+                                    $hasTicket = $event->tickets()->where('user_id', Auth::id())->where('status', 'confirmed')->exists();
+                                    $hasEnded = $event->end_date <= now();
+                                    $pendingReview = $event->reviews()->where('user_id', Auth::id())->where('is_approved', false)->first();
+                                @endphp
+
+                                @if($pendingReview)
+                                    <!-- Pending Review Notice -->
+                                    <div class="bg-amber-500/5 border border-amber-500/10 p-6 rounded-3xl mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div class="space-y-2">
+                                            <span class="inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest leading-none">Pending Moderation</span>
+                                            <h4 class="text-base font-bold text-slate-800 dark:text-slate-200">Your Resonance Review is Awaiting Approval</h4>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 italic">"{{ $pendingReview->comment }}"</p>
+                                        </div>
+                                        <div class="flex text-amber-400 gap-0.5 shrink-0">
+                                            @for($i=1; $i<=5; $i++)
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 {{ $i <= $pendingReview->rating ? 'fill-current text-amber-400' : 'opacity-20 text-slate-350' }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                </svg>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                @elseif($hasTicket && $hasEnded)
+                                    <!-- Review Submission Form -->
+                                    <div x-data="{ userRating: 5, hoverRating: 0 }" class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 p-8 rounded-3xl shadow-sm mb-8">
+                                        <h4 class="text-lg font-serif font-bold text-slate-900 dark:text-white mb-2">Leave a Resonance Review</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Describe the atmosphere and your experience to the community.</p>
+                                        
+                                        <form action="{{ route('reviews.store', $event) }}" method="POST" class="space-y-6">
+                                            @csrf
+                                            <!-- Star selection -->
+                                            <div class="space-y-2">
+                                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</label>
+                                                <div class="flex items-center gap-2">
+                                                    <input type="hidden" name="rating" :value="userRating">
+                                                    <template x-for="star in [1, 2, 3, 4, 5]">
+                                                        <button type="button" 
+                                                                @click="userRating = star" 
+                                                                @mouseenter="hoverRating = star" 
+                                                                @mouseleave="hoverRating = 0"
+                                                                class="text-amber-400 focus:outline-none transition-transform active:scale-90 duration-200">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                                                 :class="(hoverRating ? star <= hoverRating : star <= userRating) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 dark:text-slate-800'"
+                                                                 class="w-8 h-8 transition-all" 
+                                                                 viewBox="0 0 24 24" 
+                                                                 fill="none" 
+                                                                 stroke="currentColor" 
+                                                                 stroke-width="2" 
+                                                                 stroke-linecap="round" 
+                                                                 stroke-linejoin="round">
+                                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                                            </svg>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            <!-- Review text -->
+                                            <div class="space-y-2">
+                                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Comment</label>
+                                                <textarea name="comment" rows="4" required placeholder="Share your experience with the ecosystem..." class="form-input"></textarea>
+                                            </div>
+
+                                            <!-- Submit button -->
+                                            <button type="submit" class="btn-primary px-8 py-3 text-xs font-black uppercase tracking-widest">
+                                                Submit Resonance Review
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <!-- Information Banner for Unavailable Reviews -->
+                                    <div class="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl mb-8 flex items-start gap-4">
+                                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                                            <i data-lucide="info" class="w-5 h-5 text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">Resonance Rating Guidelines</h4>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                                                @if(!$hasEnded)
+                                                    Reviews will open once this experience has concluded (Event end date: {{ $event->end_date->format('M d, Y g:i A') }}).
+                                                @elseif(!$hasTicket)
+                                                    Only verified participants who reserved a ticket for this experience are eligible to leave reviews.
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
+                            @else
+                                <!-- Guest Info Banner -->
+                                <div class="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl mb-8 flex items-start gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                                        <i data-lucide="log-in" class="w-5 h-5 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">Submit a Resonance Review</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                                            Please <a href="{{ route('login') }}" class="text-primary font-bold hover:underline">login</a> to participate. Review submissions are restricted to verified ticket holders after the experience has concluded.
+                                        </p>
+                                    </div>
+                                </div>
+                            @endauth
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 @forelse($event->reviews()->approved()->with('user')->latest()->get() as $review)
                                     <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-850 p-6 rounded-2xl relative shadow-sm hover:shadow-md transition-shadow">
@@ -255,7 +359,7 @@
                                         </div>
                                         <div class="flex text-amber-400 mb-3 gap-0.5">
                                             @for($i=1; $i<=5; $i++)
-                                                <i data-lucide="star" class="w-3.5 h-3.5 {{ $i <= $review->rating ? 'fill-current text-amber-400' : 'opacity-20 text-slate-350' }}"></i>
+                                                <i data-lucide="star" class="w-3.5 h-3.5 {{ $i <= $review->rating ? 'fill-current text-amber-400' : 'opacity-20 text-slate-350' }}" />
                                             @endfor
                                         </div>
                                         <p class="text-slate-600 dark:text-slate-350 text-xs md:text-sm leading-relaxed italic font-serif">"{{ $review->comment }}"</p>
