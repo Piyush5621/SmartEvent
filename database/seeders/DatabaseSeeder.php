@@ -20,8 +20,8 @@ class DatabaseSeeder extends Seeder
             DemoUserSeeder::class,
             CategorySeeder::class,
             VenueSeeder::class,
-            DemoEventSeeder::class,
             EventPromotionPlanSeeder::class,
+            DemoEventSeeder::class,
         ]);
     }
 }
