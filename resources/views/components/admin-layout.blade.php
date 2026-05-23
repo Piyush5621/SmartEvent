@@ -58,12 +58,15 @@
                     <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }} flex items-center px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group">
                         <i data-lucide="users" class="w-5 h-5 mr-4 group-hover:scale-110 transition-transform"></i> User Matrix
                     </a>
-                    <a href="{{ route('admin.organizers.pending') }}" class="{{ request()->routeIs('admin.organizers.*') ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }} flex items-center px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group">
+                    <a href="{{ route('admin.organizers.pending') }}" class="{{ request()->routeIs('admin.organizers.pending') ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }} flex items-center px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group">
                         <i data-lucide="briefcase" class="w-5 h-5 mr-4 group-hover:scale-110 transition-transform"></i> Host Approvals
                         @php $pendingCount = \App\Models\User::role('organizer')->where('is_approved', false)->count(); @endphp
                         @if($pendingCount > 0)
                             <span class="ml-auto rounded-full bg-primary/20 border border-primary/30 px-2 py-0.5 text-[10px] font-black text-primary">{{ $pendingCount }}</span>
                         @endif
+                    </a>
+                    <a href="{{ route('admin.organizers.index') }}" class="{{ request()->routeIs('admin.organizers.index') || request()->routeIs('admin.organizers.show') ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'text-slate-400 hover:text-white hover:bg-white/5' }} flex items-center px-4 py-3.5 rounded-2xl text-sm font-bold transition-all group">
+                        <i data-lucide="shield-check" class="w-5 h-5 mr-4 group-hover:scale-110 transition-transform"></i> Organizer Hub
                     </a>
                     
                     <div class="px-4 pt-8 pb-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Ecosystem Map</div>
