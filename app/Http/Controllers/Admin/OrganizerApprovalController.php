@@ -15,7 +15,7 @@ class OrganizerApprovalController extends Controller
             ->latest()
             ->paginate(15);
             
-        return view('admin.organizers.index', compact('organizers'));
+        return view('admin.organizers.pending', compact('organizers'));
     }
 
     public function approve(User $organizer)

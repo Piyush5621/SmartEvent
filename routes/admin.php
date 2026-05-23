@@ -33,6 +33,10 @@ Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::post('organizers/{organizer}/approve', [OrganizerApprovalController::class, 'approve'])->name('organizers.approve');
     Route::post('organizers/{organizer}/reject', [OrganizerApprovalController::class, 'reject'])->name('organizers.reject');
 
+    Route::get('organizers', [\App\Http\Controllers\Admin\OrganizerManagementController::class, 'index'])->name('organizers.index');
+    Route::get('organizers/{organizer}', [\App\Http\Controllers\Admin\OrganizerManagementController::class, 'show'])->name('organizers.show');
+    Route::post('organizers/{organizer}/toggle-status', [\App\Http\Controllers\Admin\OrganizerManagementController::class, 'toggleStatus'])->name('organizers.toggle-status');
+
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::post('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
     Route::post('reviews/{review}/reject', [ReviewController::class, 'reject'])->name('reviews.reject');
