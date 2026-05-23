@@ -25,6 +25,8 @@ Route::middleware(['throttle:api'])->group(function () {
                 return $request->user();
             })->name('user');
 
+            Route::get('/dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'index'])->name('dashboard');
+
             Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
             Route::get('/my-tickets', [TicketController::class, 'index'])->name('tickets.index');
