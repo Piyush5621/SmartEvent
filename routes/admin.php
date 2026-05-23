@@ -16,6 +16,8 @@ Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('promotions', [PromotionController::class, 'index'])->name('promotions.index');
     Route::post('promotions/{promotion}/approve', [PromotionController::class, 'approve'])->name('promotions.approve');
     Route::post('promotions/{promotion}/reject', [PromotionController::class, 'reject'])->name('promotions.reject');
+    Route::post('promotions/events/{event}/add', [PromotionController::class, 'addToSlideshow'])->name('promotions.add');
+    Route::post('promotions/events/{event}/remove', [PromotionController::class, 'removeFromSlideshow'])->name('promotions.remove');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/metrics', [DashboardController::class, 'getMetrics'])->name('metrics');
     Route::get('/events', [DashboardController::class, 'events'])->name('events.index');

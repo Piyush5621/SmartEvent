@@ -4,16 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Identity Verification - {{ $event->title }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:italic&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
-        .font-serif { font-family: 'DM Serif Display', serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0F172A; }
+        .font-serif { font-family: 'Fraunces', serif; }
         #reader { border: none !important; }
         #reader__dashboard_section_csr button {
             background-color: #4D7C0F !important;

@@ -89,6 +89,16 @@
                     </div>
                     <div class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5">
                         <div>
+                            <span class="block text-[10px] font-black uppercase tracking-widest text-slate-500">Showcase Advertising</span>
+                            @php $pendingPromos = \App\Models\EventPromotion::where('status', 'pending')->count(); @endphp
+                            <span class="block text-2xl font-serif text-white mt-1">{{ $pendingPromos }} request{{ $pendingPromos == 1 ? '' : 's' }}</span>
+                        </div>
+                        <a href="{{ route('admin.promotions.index') }}" class="w-12 h-12 rounded-2xl bg-[#4E7D5B] flex items-center justify-center text-white hover:scale-110 transition-transform">
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                    <div class="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5">
+                        <div>
                             <span class="block text-[10px] font-black uppercase tracking-widest text-slate-500">Feedback Moderation</span>
                             <span class="block text-2xl font-serif text-white mt-1">Review flagged resonance</span>
                         </div>

@@ -15,8 +15,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                serif: ['DM Serif Display', ...defaultTheme.fontFamily.serif],
+                sans: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans],
+                serif: ['Fraunces', ...defaultTheme.fontFamily.serif],
             },
             colors: {
                 primary: {

@@ -54,7 +54,7 @@ class Event extends Model implements HasMedia
     public function organizer() { return $this->belongsTo(User::class, 'organizer_id'); }
     public function category() { return $this->belongsTo(EventCategory::class); }
     public function venue() { return $this->belongsTo(Venue::class); }
-    public function ticketTypes() { return $this->hasMany(TicketType::class); }
+    public function ticketTypes() { return $this->hasMany(TicketType::class)->orderBy('price', 'asc'); }
     public function tickets() { return $this->hasMany(Ticket::class); }
     public function sessions() { return $this->hasMany(EventSession::class); }
     public function speakers() { return $this->hasMany(Speaker::class); }

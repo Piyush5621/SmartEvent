@@ -114,7 +114,7 @@
                                     <td class="px-8 py-6">
                                         <div class="flex items-center gap-4">
                                             <div class="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden shadow-sm bg-slate-50 border border-slate-100">
-                                                @if($promo->event->hasMedia('banners'))
+                                                @if($promo->event && $promo->event->hasMedia('banners'))
                                                     <img src="{{ $promo->event->getFirstMediaUrl('banners', 'thumb') }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full bg-slate-900 flex items-center justify-center">
@@ -123,8 +123,8 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <span class="font-bold text-slate-900 text-sm block leading-snug group-hover:text-primary transition-colors">{{ $promo->event->title }}</span>
-                                                <span class="block text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Host: {{ $promo->event->organizer->name }}</span>
+                                                <span class="font-bold text-slate-900 text-sm block leading-snug group-hover:text-primary transition-colors">{{ $promo->event->title ?? 'Deleted Event' }}</span>
+                                                <span class="block text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Host: {{ $promo->event->organizer->name ?? 'Unknown' }}</span>
                                             </div>
                                         </div>
                                     </td>
@@ -206,9 +206,118 @@
 
                 @if($promotions->hasPages())
                     <div class="p-8 border-t border-slate-50 bg-cream/10">
-                        {{ $promotions->links() }}
+                        {{ $promotions->appends(request()->except('promotions_page'))->links() }}
+                    </div>
+                @endif
+            </section>
+
+            <!-- Manual Slideshow Display Override Section -->
+            <section class="premium-card bg-white border-slate-100 overflow-hidden shadow-2xl shadow-primary/5 mt-12">
+                <div class="p-8 border-b border-slate-50 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-serif text-slate-900">Slideshow Display Control (Manual Override)</h3>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Directly promote or remove any upcoming event in the main slideshow</p>
                     </div>
                 </div>
+
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-cream/30 border-b border-slate-50">
+                                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Experience Event</th>
+                                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Category</th>
+                                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Start Date</th>
+                                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Slideshow Status</th>
+                                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($upcomingEvents as $event)
+                                @php
+                                    $hasActivePromo = $event->promotions->where('status', 'approved')
+                                        ->where('payment_status', 'paid')
+                                        ->where('start_date', '<=', now())
+                                        ->where('end_date', '>=', now())
+                                        ->count() > 0;
+                                    $isInSlideshow = $event->is_featured || $hasActivePromo;
+                                @endphp
+                                <tr class="group hover:bg-cream/50 transition-colors duration-300">
+                                    <td class="px-8 py-6">
+                                        <div class="flex items-center gap-4">
+                                            <div class="relative w-10 h-10 shrink-0 rounded-xl overflow-hidden shadow-sm bg-slate-50 border border-slate-100">
+                                                @if($event->hasMedia('banners'))
+                                                    <img src="{{ $event->getFirstMediaUrl('banners', 'thumb') }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <div class="w-full h-full bg-slate-900 flex items-center justify-center">
+                                                        <i data-lucide="image" class="text-slate-700 w-4 h-4"></i>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <span class="font-bold text-slate-900 text-sm block leading-snug group-hover:text-primary transition-colors">{{ $event->title }}</span>
+                                                <span class="block text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Host: {{ $event->organizer->name ?? 'Unknown' }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="px-8 py-6 text-xs text-slate-700">
+                                        <span class="font-bold block">{{ $event->category->name }}</span>
+                                    </td>
+
+                                    <td class="px-8 py-6 text-xs text-slate-500 font-mono">
+                                        <span class="font-bold text-slate-700">{{ $event->start_date->format('M d, Y') }}</span>
+                                    </td>
+
+                                    <td class="px-8 py-6">
+                                        @if($isInSlideshow)
+                                            @if($event->is_featured && $hasActivePromo)
+                                                <span class="status-pill bg-[#4E7D5B]/10 text-[#4E7D5B] border-[#4E7D5B]/20 tracking-wider">FEATURED & PAID PROMO</span>
+                                            @elseif($event->is_featured)
+                                                <span class="status-pill bg-[#4E7D5B]/10 text-[#4E7D5B] border-[#4E7D5B]/20 tracking-wider">MANUALLY FEATURED</span>
+                                            @else
+                                                <span class="status-pill bg-emerald-50 text-emerald-700 border-emerald-100 tracking-wider">PAID PROMO ACTIVE</span>
+                                            @endif
+                                        @else
+                                            <span class="status-pill bg-slate-100 text-slate-400 border-slate-200 tracking-wider">STANDARD LISTING</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-8 py-6 text-right">
+                                        <div class="flex items-center justify-end gap-4">
+                                            @if($isInSlideshow)
+                                                <form action="{{ route('admin.promotions.remove', $event->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex px-4 py-2 border border-rose-200 text-rose-500 hover:bg-rose-50 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors">
+                                                        REMOVE FROM SLIDESHOW
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.promotions.add', $event->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex px-4 py-2 bg-[#4E7D5B] hover:bg-[#3C6347] text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-md shadow-[#4E7D5B]/10 transition-colors">
+                                                        ADD TO SLIDESHOW
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-8 py-20 text-center text-slate-400 font-serif italic">
+                                        <h3 class="text-lg font-serif text-slate-900 mb-2">No upcoming events found.</h3>
+                                        <p class="text-slate-550 italic text-xs">Create or seed new events to see them in this control board.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                @if($upcomingEvents->hasPages())
+                    <div class="p-8 border-t border-slate-50 bg-cream/10">
+                        {{ $upcomingEvents->appends(request()->except('events_page'))->links() }}
+                    </div>
                 @endif
             </section>
         </div>

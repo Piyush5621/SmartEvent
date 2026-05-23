@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    <script>
+        if (localStorage.getItem('darkMode') === 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -9,21 +16,21 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @stack('styles')
 
     <style>
-        body { font-family: 'Outfit', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="antialiased bg-slate-50 text-slate-900">
+<body class="antialiased bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
     <div class="min-h-screen flex flex-col">
-        <header x-data="{ open: false }" class="bg-white shadow-sm sticky top-0 z-50">
+        <header x-data="{ open: false }" class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-sm sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-20 gap-4">
                     <a href="{{ route('home') }}" class="flex items-center gap-3">
@@ -45,10 +52,11 @@
                     </nav>
 
                     <div class="flex items-center gap-3">
+                        <x-theme-toggle />
                         @auth
-                            <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-slate-700 hover:text-indigo-600">Dashboard</a>
+                            <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-slate-700 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white">Dashboard</a>
                         @else
-                            <a href="{{ route('login') }}" class="text-sm font-semibold text-slate-700 hover:text-indigo-600">Log in</a>
+                            <a href="{{ route('login') }}" class="text-sm font-semibold text-slate-700 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white">Log in</a>
                             <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200/30 hover:bg-indigo-700 transition">Get Started</a>
                         @endauth
                         <button @click="open = !open" class="lg:hidden inline-flex items-center justify-center rounded-full border border-slate-200 p-3 text-slate-600 hover:bg-slate-100 transition">

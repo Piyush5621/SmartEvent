@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap"
         rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -20,11 +20,11 @@
     <!-- CSS Custom Style Polish -->
     <style>
         .font-serif {
-            font-family: 'DM Serif Display', Georgia, serif;
+            font-family: 'Fraunces', Georgia, serif;
         }
 
         .font-sans {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         }
 
         .bg-cream {
@@ -95,12 +95,12 @@
     </style>
 </head>
 
-<body class="antialiased bg-cream text-slate-800 font-sans selection:bg-[#4E7D5B] selection:text-white overflow-x-hidden"
+<body class="antialiased bg-cream dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans selection:bg-[#4E7D5B] selection:text-white overflow-x-hidden"
     x-data="{ scrolled: false }" @scroll.window="scrolled = window.pageYOffset > 50">
 
     <!-- [Step 1: Universal Navigation Header] -->
     <nav class="fixed top-0 w-full z-[100] premium-transition"
-        :class="scrolled ? 'bg-[#FDFBF7]/90 backdrop-blur-xl border-b border-slate-100 py-4 shadow-sm' : 'py-8'">
+        :class="scrolled ? 'bg-[#FDFBF7]/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 py-4 shadow-sm' : 'py-8'">
         <div class="max-w-[1440px] mx-auto px-6 md:px-12">
             <div class="flex items-center justify-between">
                 
@@ -116,14 +116,15 @@
 
                 <!-- Center Links -->
                 <div class="hidden md:flex items-center gap-10">
-                    <a href="{{ route('events.index') }}" class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">Browse Events</a>
-                    <a href="#features" class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">Features</a>
-                    <a href="#metrics" class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">Impact</a>
-                    <a href="{{ route('about') }}" class="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">About Us</a>
+                    <a href="{{ route('events.index') }}" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">Browse Events</a>
+                    <a href="#features" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">Features</a>
+                    <a href="#metrics" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">Impact</a>
+                    <a href="{{ route('about') }}" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] hover:text-[#4E7D5B] premium-transition">About Us</a>
                 </div>
 
                 <!-- Right Side: Actions -->
                 <div class="flex items-center gap-4">
+                    <x-theme-toggle />
                     @guest
                         <a href="{{ route('login') }}" class="hidden sm:inline-flex px-6 py-3 border border-slate-200 text-[#4E7D5B] bg-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 premium-transition">
                             Sign In
