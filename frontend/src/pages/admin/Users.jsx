@@ -55,6 +55,26 @@ export default function UsersList() {
     }
   };
 
+  const handleRoleChange = async (user, newRole) => {
+    if (!window.confirm(`Are you sure you want to change the role of "${user.name}" to "${newRole}"?`)) {
+      // Force refresh to reset dropdown to previous state
+      fetchUsers();
+      return;
+    }
+
+    try {
+      const res = await api.put(`/admin/users/${user.id}`, {
+        role: newRole
+      });
+      alert(res.data.message);
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to update user role.');
+      fetchUsers();
+    }
+  };
+
   const filteredUsers = users.filter(u => {
     const matchesSearch = 
       u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -131,15 +151,21 @@ export default function UsersList() {
                           <div className="text-[10px] text-slate-400 mt-1">{u.email}</div>
                         </td>
                         <td className="px-6 py-5 uppercase tracking-wider text-[10px]">
-                          <span className={`px-2.5 py-0.5 rounded-full font-black ${
-                            u.role === 'admin' 
-                              ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/20' 
-                              : u.role === 'organizer' 
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20' 
-                              : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
-                          }`}>
-                            {u.role}
-                          </span>
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u, e.target.value)}
+                            className={`px-2.5 py-1 rounded-full font-black text-[10px] uppercase tracking-wider border cursor-pointer outline-none transition-all duration-200 ${
+                              u.role === 'admin' 
+                                ? 'bg-rose-50 border-rose-100 text-rose-700 dark:bg-rose-950/20 dark:border-rose-900/50' 
+                                : u.role === 'organizer' 
+                                ? 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:border-emerald-900/50' 
+                                : 'bg-slate-100 border-slate-205 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-350'
+                            }`}
+                          >
+                            <option value="attendee" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Attendee</option>
+                            <option value="organizer" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Organizer</option>
+                            <option value="admin" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Admin</option>
+                          </select>
                         </td>
                         <td className="px-6 py-5 text-slate-500">
                           {new Date(u.created_at).toLocaleDateString()}

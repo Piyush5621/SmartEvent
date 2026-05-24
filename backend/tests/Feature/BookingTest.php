@@ -23,7 +23,7 @@ class BookingTest extends TestCase
             'quantity_sold' => 0
         ]);
 
-        $response = $this->actingAs($user)->post("/events/{$event->slug}/book", [
+        $response = $this->actingAs($user)->post(route('events.book.store', $event), [
             'ticket_type_id' => $ticketType->id,
             'quantity' => 2,
         ]);

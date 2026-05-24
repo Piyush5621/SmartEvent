@@ -50,16 +50,44 @@ class AdminController extends Controller
     public function updateUser(Request $request, User $user)
     {
         $request->validate([
-            'is_active' => 'required|boolean',
+            'is_active' => 'sometimes|required|boolean',
+            'role' => 'sometimes|required|string|in:admin,organizer,attendee',
         ]);
 
-        $user->update(['is_active' => $request->is_active]);
+        if ($request->has('is_active')) {
+            $user->update(['is_active' => $request->is_active]);
+            activity()->causedBy(auth()->user())->performedOn($user)->log('updated user active state to: ' . ($request->is_active ? 'active' : 'inactive'));
+        }
 
-        activity()->causedBy(auth()->user())->performedOn($user)->log('updated user active state to: ' . ($request->is_active ? 'active' : 'inactive'));
+        if ($request->has('role')) {
+            if ($user->id === auth()->id() && $request->role !== 'admin') {
+                return response()->json(['message' => 'You cannot revoke your own Administrator privileges.'], 400);
+            }
+
+            $oldRole = $user->roles->pluck('name')->first() ?? 'user';
+            $user->syncRoles([$request->role]);
+
+            if ($request->role === 'organizer') {
+                $user->is_approved = true;
+            } else {
+                $user->is_approved = false;
+            }
+            $user->save();
+
+            activity()->causedBy(auth()->user())->performedOn($user)->log("changed role from {$oldRole} to {$request->role}");
+        }
 
         return response()->json([
-            'message' => 'User status updated successfully.',
-            'user' => $user
+            'message' => 'User updated successfully.',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'is_active' => $user->is_active ?? true,
+                'is_approved' => $user->is_approved,
+                'role' => $user->roles->pluck('name')->first() ?? 'user',
+                'created_at' => $user->created_at->toIso8601String(),
+            ]
         ]);
     }
 

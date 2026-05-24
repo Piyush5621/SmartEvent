@@ -415,7 +415,7 @@ export default function Profile() {
                   </div>
 
                   {/* Organizer apply panel */}
-                  {profile && profile.role === 'user' && (
+                  {profile && (profile.role === 'user' || profile.role === 'attendee') && (
                     <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm space-y-6">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-[#4E7D5B]/10 flex items-center justify-center text-primary shrink-0">
